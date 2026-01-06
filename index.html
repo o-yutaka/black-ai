@@ -18,17 +18,19 @@
 
     #chat {
       flex: 1;
-      padding: 12px;
+      padding: 14px;
       overflow-y: auto;
+      font-size: 16px;
     }
 
     .msg {
-      max-width: 80%;
-      margin-bottom: 10px;
-      padding: 10px 14px;
-      border-radius: 12px;
-      line-height: 1.4;
+      max-width: 85%;
+      margin-bottom: 12px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      line-height: 1.5;
       white-space: pre-wrap;
+      word-break: break-word;
     }
 
     .user {
@@ -45,16 +47,20 @@
 
     #inputArea {
       display: flex;
+      gap: 8px;
+      padding: 10px;
       border-top: 1px solid #333;
+      background: #000;
     }
 
     input {
       flex: 1;
-      background: #000;
+      background: #111;
       color: #fff;
-      border: none;
+      border: 1px solid #333;
+      border-radius: 12px;
       padding: 14px;
-      font-size: 16px;
+      font-size: 17px; /* ← iPhone最適 */
       outline: none;
     }
 
@@ -63,10 +69,11 @@
     }
 
     button {
-      background: #000;
+      background: #111;
       color: #fff;
-      border: none;
-      padding: 14px 18px;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 14px 16px;
       font-size: 16px;
     }
   </style>
