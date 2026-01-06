@@ -3,10 +3,77 @@
 <head>
   <meta charset="UTF-8">
   <title>BLACK</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    #chat {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+    }
+
+    .msg {
+      max-width: 80%;
+      margin-bottom: 10px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    .user {
+      background: #1f2937;
+      margin-left: auto;
+      text-align: right;
+    }
+
+    .black {
+      background: #111;
+      border: 1px solid #333;
+      margin-right: auto;
+    }
+
+    #inputArea {
+      display: flex;
+      border-top: 1px solid #333;
+    }
+
+    input {
+      flex: 1;
+      background: #000;
+      color: #fff;
+      border: none;
+      padding: 14px;
+      font-size: 16px;
+    }
+
+    button {
+      background: #000;
+      color: #fff;
+      border: none;
+      padding: 14px 18px;
+      font-size: 16px;
+    }
+  </style>
 </head>
+
 <body>
-  <h1>BLACK 起動確認</h1>
-  <div id="output">待機中</div>
+  <div id="chat"></div>
+
+  <div id="inputArea">
+    <input id="input" placeholder="BLACKに入力…" />
+    <button onclick="send()">送信</button>
+  </div>
 
   <script src="black.js"></script>
 </body>
