@@ -1,176 +1,141 @@
-<!DOCTYPE html>
+　<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>BLACK UI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BLACK</title>
 
 <style>
 body {
     background:black;
-    color:#0f0;
-    font-family:monospace;
+    color:white;
+    font-family:-apple-system;
     margin:0;
 }
 
-/* ログ */
 #log {
-    padding:20px;
-    padding-bottom:120px;
+    padding:15px;
+    padding-bottom:90px;
     display:flex;
     flex-direction:column;
 }
 
-/* メッセージ */
 .msg {
-    margin:10px 0;
-    padding:12px 15px;
-    border-radius:12px;
-    max-width:85%;
-    word-break:break-word;
+    margin:6px 0;
+    padding:10px 12px;
+    border-radius:10px;
+    max-width:90%;
 }
 
-/* ユーザー */
 .user {
-    background:#1a1a1a;
-    color:#0f0;
+    background:#111;
     align-self:flex-end;
 }
 
-/* AI */
 .ai {
-    background:#111;
+    background:black;
 }
 
-/* winner */
-.winner {
-    color:yellow;
-    font-weight:bold;
-}
-
-/* thinkingアニメ */
-.thinking {
-    opacity:0.6;
-    animation: blink 1s infinite;
-}
-
-@keyframes blink {
-    0% {opacity:0.3;}
-    50% {opacity:1;}
-    100% {opacity:0.3;}
-}
-
-/* 下固定 */
 #inputBox {
     position:fixed;
     bottom:0;
-    left:0;
     width:100%;
-    background:#111;
-    padding:10px;
     display:flex;
-    gap:10px;
-    border-top:1px solid #0f0;
+    padding:10px;
+    background:black;
+    border-top:1px solid #222;
 }
 
-/* 入力 */
 #goal {
     flex:1;
-    background:black;
-    color:#0f0;
-    border:1px solid #0f0;
-    padding:12px;
-    border-radius:12px;
     font-size:16px;
+    padding:12px;
+    background:black;
+    color:white;
+    border:1px solid #333;
+    border-radius:10px;
 }
 
-/* ボタン */
 button {
-    background:#0f0;
+    margin-left:8px;
+    padding:12px;
+    background:white;
     color:black;
     border:none;
-    padding:12px 16px;
-    border-radius:12px;
-    font-weight:bold;
+    border-radius:10px;
 }
 </style>
 </head>
 
 <body>
 
-<h2 style="text-align:center;">BLACK</h2>
-
 <div id="log"></div>
 
 <div id="inputBox">
-    <input id="goal" placeholder="何したい？"/>
-    <button onclick="run()">RUN</button>
+<input id="goal" placeholder="type...">
+<button onclick="run()">→</button>
 </div>
 
 <script>
 let ws = new WebSocket("wss://black-ai-co4j.onrender.com/ws");
 
-// Enter送信
-document.getElementById("goal").addEventListener("keydown", function(e){
-    if(e.key === "Enter"){
-        run();
-    }
+let answerDiv = null;
+
+document.getElementById("goal").addEventListener("keydown", e=>{
+    if(e.key==="Enter") run();
 });
 
-ws.onmessage = (msg) => {
+ws.onmessage = (msg)=>{
     let data = JSON.parse(msg.data);
+    let log = document.getElementById("log");
 
-    let div = document.createElement("div");
-    div.classList.add("msg","ai");
-
-    if(data.type === "thinking"){
-        div.classList.add("thinking");
-        div.innerText =
-            "⚡ " + data.data.type +
-            " | " + data.data.score.toFixed(2);
+    if(data.type==="thinking"){
+        let d=document.createElement("div");
+        d.className="msg ai";
+        d.innerText=data.data.type;
+        log.appendChild(d);
     }
 
-    if(data.type === "winner"){
-        div.classList.add("winner");
-        div.innerText =
-            "🔥 " +
-            data.data.type +
-            " | " + data.data.score.toFixed(2);
+    if(data.type==="winner"){
+        let d=document.createElement("div");
+        d.className="msg ai";
+        d.innerText="→ "+data.data.type;
+        log.appendChild(d);
     }
 
-    if(data.type === "evolution"){
-        div.innerText = "🧬 evolved";
-        div.style.color = "cyan";
+    if(data.type==="answer_start"){
+        answerDiv=document.createElement("div");
+        answerDiv.className="msg ai";
+        log.appendChild(answerDiv);
     }
 
-    // ★ GPT回答用（後で効く）
-    if(data.type === "answer"){
-        div.innerText = data.data;
-        div.style.color = "#fff";
+    if(data.type==="answer_stream"){
+        if(answerDiv){
+            answerDiv.innerText+=data.data;
+        }
     }
 
-    document.getElementById("log").appendChild(div);
-
-    window.scrollTo(0, document.body.scrollHeight);
+    window.scrollTo(0,document.body.scrollHeight);
 };
 
 function run(){
 
-    let goal = document.getElementById("goal").value;
+    let input=document.getElementById("goal");
+    let goal=input.value;
 
-    if(!goal) return;
+    if(!goal)return;
 
-    // ユーザー表示
-    let userDiv = document.createElement("div");
-    userDiv.classList.add("msg","user");
-    userDiv.innerText = "🧠 " + goal;
+    let u=document.createElement("div");
+    u.className="msg user";
+    u.innerText=goal;
 
-    document.getElementById("log").appendChild(userDiv);
+    document.getElementById("log").appendChild(u);
 
     ws.send(JSON.stringify({goal}));
 
-    document.getElementById("goal").value = "";
+    input.value="";
 
-    window.scrollTo(0, document.body.scrollHeight);
+    window.scrollTo(0,document.body.scrollHeight);
 }
 </script>
 
