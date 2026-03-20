@@ -14,5 +14,4 @@ def root():
 @app.post("/think")
 def think(data: dict):
     goal = data.get("goal", "")
-
     return engine.run(goal)
