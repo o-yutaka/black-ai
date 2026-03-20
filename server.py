@@ -17,4 +17,4 @@ def think(data: dict):
 
     result = engine.decide(goal)
 
-    return result
+    return result 
