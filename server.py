@@ -1,9 +1,9 @@
 from fastapi import FastAPI
-from decision_engine import DecisionEngine
+from thinking_engine import ThinkingEngine
 
 app = FastAPI()
 
-engine = DecisionEngine()
+engine = ThinkingEngine()
 
 
 @app.get("/")
@@ -15,6 +15,4 @@ def root():
 def think(data: dict):
     goal = data.get("goal", "")
 
-    result = engine.decide(goal)
-
-    return result 
+    return engine.run(goal)
