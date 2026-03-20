@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>BLACK UI</title>
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </head>
 
 <body style="background:black;color:#0f0;font-family:monospace">
@@ -37,7 +36,6 @@ ws.onmessage = (msg) => {
             data.data.type +
             " | SCORE: " +
             data.data.score.toFixed(2);
-
         div.style.color = "yellow";
     }
 
@@ -50,7 +48,9 @@ ws.onmessage = (msg) => {
 
 function run(){
     let goal = document.getElementById("goal").value;
-
     ws.send(JSON.stringify({goal}));
 }
 </script>
+
+</body>
+</html>
