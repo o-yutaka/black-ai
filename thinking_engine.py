@@ -10,12 +10,7 @@ class ThinkingEngine:
         self.memory = MemoryPool()
         self.evolution = EvolutionEngine()
 
-        # ------------------------
-        # 勝率記録（ここが核）
-        # ------------------------
         self.mode_stats = {}
-
-        # 覇権モード
         self.dominant_mode = None
 
     def run(self, goal):
@@ -27,9 +22,9 @@ class ThinkingEngine:
         winner = result["winner"]
 
         # ------------------------
-        # 勝者のmode取得
+        # 仮モード（安全）
         # ------------------------
-        mode = winner.get("mode", "unknown")
+        mode = winner["strategy"]["type"]
 
         # ------------------------
         # 勝率カウント
@@ -48,24 +43,20 @@ class ThinkingEngine:
         )
 
         # ------------------------
-        # 覇権バイアス（ここが最強）
+        # 覇権バイアス
         # ------------------------
         if mode == self.dominant_mode:
-            winner["score"] *= 1.2  # 強化
+            winner["score"] *= 1.2
 
         # ------------------------
-        # Memory保存（勝者のみ）
+        # Memory保存
         # ------------------------
         self.memory.store({
             "goal": goal,
             "strategy": winner["strategy"]["type"],
-            "score": winner["score"],
-            "mode": mode
+            "score": winner["score"]
         })
 
-        # ------------------------
-        # Evolution
-        # ------------------------
         evo = self.evolution.evolve(result["top"])
 
         return {
