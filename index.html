@@ -16,30 +16,41 @@
 <div id="log"></div>
 
 <script>
-async function run(){
+let ws = new WebSocket("wss://black-ai-co4j.onrender.com/ws");
 
-    let goal = document.getElementById("goal").value;
-
-    const res = await axios.post(
-        "https://black-ai-co4j.onrender.com/think",
-        { goal }
-    );
-
-    let data = res.data;
+ws.onmessage = (msg) => {
+    let data = JSON.parse(msg.data);
 
     let div = document.createElement("div");
 
-    div.innerText =
-        "WINNER: " +
-        data.decision.winner.strategy.type +
-        " | SCORE: " +
-        data.decision.winner.score.toFixed(2);
+    if(data.type === "thinking"){
+        div.innerText =
+            "thinking: " +
+            data.data.type +
+            " | " +
+            data.data.score.toFixed(2);
+    }
 
-    div.style.color = "yellow";
+    if(data.type === "winner"){
+        div.innerText =
+            "🔥 WINNER: " +
+            data.data.type +
+            " | SCORE: " +
+            data.data.score.toFixed(2);
+
+        div.style.color = "yellow";
+    }
+
+    if(data.type === "evolution"){
+        div.innerText = "evolution: " + JSON.stringify(data.data);
+    }
 
     document.getElementById("log").appendChild(div);
+};
+
+function run(){
+    let goal = document.getElementById("goal").value;
+
+    ws.send(JSON.stringify({goal}));
 }
 </script>
-
-</body>
-</html>
