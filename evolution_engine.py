@@ -1,19 +1,20 @@
-class EvolutionEngine:
+def evaluate(strategy, sim):
 
-    def __init__(self):
-        self.history = []
+    score = sim["success"] - sim["risk"]
 
-    def evolve(self, strategies):
+    # Memory補正
+    for m in memory:
+        if m["strategy"] == strategy["type"]:
+            score *= 1.1
 
-        # 勝者
-        best = sorted(strategies, key=lambda x: x["score"], reverse=True)[0]
+    # モード補正
+    if MODE == "aggressive":
+        score *= 1.2
 
-        self.history.append(best)
+    elif MODE == "defensive":
+        score *= 0.9
 
-        # 強化（シンプル版）
-        best["strategy"]["weight"] *= 1.05
+    elif MODE == "balanced":
+        pass
 
-        return {
-            "evolved": best,
-            "history_len": len(self.history)
-        }
+    return score
