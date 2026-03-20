@@ -2,22 +2,36 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BLACK UI</title>
 </head>
 
-<body style="background:black;color:#0f0;font-family:monospace;text-align:center">
+<body style="margin:0;background:black;color:#0f0;font-family:monospace;">
 
-<h1 style="color:#0f0;">BLACK OS</h1>
+<div style="display:flex;flex-direction:column;height:100vh;">
 
-<input id="goal" placeholder="Enter goal"
-style="padding:10px;background:#111;color:#0f0;border:1px solid #0f0;"/>
+    <!-- header -->
+    <div style="padding:10px;text-align:center;border-bottom:1px solid #0f0;">
+        BLACK
+    </div>
 
-<button onclick="run()"
-style="padding:10px 20px;background:#0f0;color:black;border:none;margin-left:10px;">
-RUN
-</button>
+    <!-- log -->
+    <div id="log" style="flex:1;overflow-y:auto;padding:10px;"></div>
 
-<div id="log" style="margin-top:30px;"></div>
+    <!-- input -->
+    <div style="display:flex;padding:10px;border-top:1px solid #0f0;">
+        <input id="goal"
+            placeholder="Type goal..."
+            style="flex:1;padding:10px;background:#111;color:#0f0;border:1px solid #0f0;border-radius:5px;"
+            onkeydown="if(event.key==='Enter') run()"
+        />
+        <button onclick="run()"
+            style="margin-left:10px;padding:10px;background:#0f0;color:black;border:none;border-radius:5px;">
+            SEND
+        </button>
+    </div>
+
+</div>
 
 <script>
 let ws;
@@ -29,16 +43,15 @@ function connect(){
         let data = JSON.parse(msg.data);
 
         let div = document.createElement("div");
-        div.style.margin = "10px";
+        div.style.margin = "10px 0";
 
         if(data.type === "thinking"){
             div.innerText = "⚡ " + data.data.type + " | " + data.data.score.toFixed(2);
         }
 
         if(data.type === "winner"){
-            div.innerText = "🔥 WINNER: " + data.data.type;
+            div.innerText = "🔥 " + data.data.type;
             div.style.color = "yellow";
-            div.style.fontSize = "20px";
         }
 
         if(data.type === "evolution"){
@@ -46,7 +59,9 @@ function connect(){
             div.style.color = "#0ff";
         }
 
-        document.getElementById("log").appendChild(div);
+        let log = document.getElementById("log");
+        log.appendChild(div);
+        log.scrollTop = log.scrollHeight;
     };
 
     ws.onclose = () => setTimeout(connect, 1000);
@@ -55,14 +70,26 @@ function connect(){
 connect();
 
 function run(){
-    let goal = document.getElementById("goal").value;
+    let input = document.getElementById("goal");
+    let goal = input.value;
+
+    if(!goal) return;
 
     if(ws.readyState !== 1){
         alert("connecting...");
         return;
     }
 
+    // 自分の入力表示
+    let my = document.createElement("div");
+    my.innerText = "🧠 " + goal;
+    my.style.textAlign = "right";
+    my.style.margin = "10px 0";
+    document.getElementById("log").appendChild(my);
+
     ws.send(JSON.stringify({goal}));
+
+    input.value = "";
 }
 </script>
 
