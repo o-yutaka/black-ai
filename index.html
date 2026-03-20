@@ -1,68 +1,64 @@
-　<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>BLACK</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body {
-    background:black;
-    color:white;
-    font-family:-apple-system;
-    margin:0;
+  background:black;
+  color:white;
+  font-family:-apple-system;
+  margin:0;
 }
 
 #log {
-    padding:15px;
-    padding-bottom:90px;
-    display:flex;
-    flex-direction:column;
+  padding:10px;
+  padding-bottom:80px;
+  display:flex;
+  flex-direction:column;
 }
 
 .msg {
-    margin:6px 0;
-    padding:10px 12px;
-    border-radius:10px;
-    max-width:90%;
+  margin:6px 0;
+  padding:10px;
+  border-radius:10px;
+  max-width:85%;
 }
 
 .user {
-    background:#111;
-    align-self:flex-end;
+  background:#111;
+  align-self:flex-end;
 }
 
 .ai {
-    background:black;
+  background:#000;
 }
 
 #inputBox {
-    position:fixed;
-    bottom:0;
-    width:100%;
-    display:flex;
-    padding:10px;
-    background:black;
-    border-top:1px solid #222;
+  position:fixed;
+  bottom:0;
+  width:100%;
+  display:flex;
+  background:black;
+  padding:10px;
 }
 
-#goal {
-    flex:1;
-    font-size:16px;
-    padding:12px;
-    background:black;
-    color:white;
-    border:1px solid #333;
-    border-radius:10px;
+input {
+  flex:1;
+  padding:12px;
+  font-size:16px;
+  border-radius:10px;
+  border:1px solid #333;
+  background:black;
+  color:white;
 }
 
 button {
-    margin-left:8px;
-    padding:12px;
-    background:white;
-    color:black;
-    border:none;
-    border-radius:10px;
+  margin-left:8px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:white;
+  color:black;
 }
 </style>
 </head>
@@ -77,65 +73,37 @@ button {
 </div>
 
 <script>
-let ws = new WebSocket("wss://black-ai-co4j.onrender.com/ws");
-
-let answerDiv = null;
-
 document.getElementById("goal").addEventListener("keydown", e=>{
-    if(e.key==="Enter") run();
+  if(e.key==="Enter") run();
 });
 
-ws.onmessage = (msg)=>{
-    let data = JSON.parse(msg.data);
-    let log = document.getElementById("log");
-
-    if(data.type==="thinking"){
-        let d=document.createElement("div");
-        d.className="msg ai";
-        d.innerText=data.data.type;
-        log.appendChild(d);
-    }
-
-    if(data.type==="winner"){
-        let d=document.createElement("div");
-        d.className="msg ai";
-        d.innerText="→ "+data.data.type;
-        log.appendChild(d);
-    }
-
-    if(data.type==="answer_start"){
-        answerDiv=document.createElement("div");
-        answerDiv.className="msg ai";
-        log.appendChild(answerDiv);
-    }
-
-    if(data.type==="answer_stream"){
-        if(answerDiv){
-            answerDiv.innerText+=data.data;
-        }
-    }
-
-    window.scrollTo(0,document.body.scrollHeight);
-};
-
 function run(){
+  let input=document.getElementById("goal");
+  let goal=input.value;
 
-    let input=document.getElementById("goal");
-    let goal=input.value;
+  if(!goal)return;
 
-    if(!goal)return;
+  let log=document.getElementById("log");
 
-    let u=document.createElement("div");
-    u.className="msg user";
-    u.innerText=goal;
+  // ユーザー表示
+  let u=document.createElement("div");
+  u.className="msg user";
+  u.innerText=goal;
+  log.appendChild(u);
 
-    document.getElementById("log").appendChild(u);
+  // 仮AI（今はダミー）
+  let a=document.createElement("div");
+  a.className="msg ai";
+  a.innerText="...";
+  log.appendChild(a);
 
-    ws.send(JSON.stringify({goal}));
+  setTimeout(()=>{
+    a.innerText="考え中...";
+  },500);
 
-    input.value="";
+  input.value="";
 
-    window.scrollTo(0,document.body.scrollHeight);
+  window.scrollTo(0,document.body.scrollHeight);
 }
 </script>
 
