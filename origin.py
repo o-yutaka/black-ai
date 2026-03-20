@@ -1,47 +1,49 @@
-import threading
+from thinking_engine import ThinkingEngine
 
 
-class Origin:
+class BlackNode:
 
-    def __init__(self, engines):
-
-        self.engines = engines
+    def __init__(self, mode):
+        self.engine = ThinkingEngine()
+        self.mode = mode
 
     def run(self, goal):
+        result = self.engine.run(goal)
+
+        return {
+            "mode": self.mode,
+            "result": result
+        }
+
+
+class BlackOrchestrator:
+
+    def __init__(self):
+
+        self.nodes = [
+            BlackNode("aggressive"),
+            BlackNode("defensive"),
+            BlackNode("balanced")
+        ]
+
+    def execute(self, goal):
 
         results = []
-        threads = []
 
-        def execute(engine):
-            res = engine.run(goal)
+        for node in self.nodes:
+            res = node.run(goal)
             results.append(res)
 
-        # 並列実行
-        for e in self.engines:
-            t = threading.Thread(target=execute, args=(e,))
-            t.start()
-            threads.append(t)
+        # ------------------------
+        # 勝者選定（ここが核）
+        # ------------------------
+        best = sorted(
+            results,
+            key=lambda x: x["result"]["decision"]["winner"]["score"],
+            reverse=True
+        )[0]
 
-        for t in threads:
-            t.join()
-
-        return self._select(results)
-
-
-    # ------------------------
-    # 勝者選定
-    # ------------------------
-    def _select(self, results):
-
-        best = None
-        best_score = -1
-
-        for r in results:
-
-            score = r["winner"]["score"]
-
-            if score > best_score:
-                best = r
-                best_score = score
-
-        return best
+        return {
+            "winner": best,
+            "all": results
+        }
