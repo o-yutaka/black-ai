@@ -5,9 +5,12 @@ app = FastAPI()
 
 engine = ThinkingEngine()
 
+
+# これが無いと Not Found になる
 @app.get("/")
 def root():
     return {"status": "BLACK ONLINE"}
+
 
 @app.post("/think")
 def think(data: dict):
