@@ -1,23 +1,12 @@
-class MemoryPool:
+　def search(self, goal):
 
-    def __init__(self):
-        self.data = []
+    results = []
 
-    # ------------------------
-    # 保存
-    # ------------------------
-    def store(self, item):
-        self.data.append(item)
+    for d in self.data:
+        if goal in d.get("goal", ""):
+            results.append(d)
 
-    # ------------------------
-    # 検索（簡易）
-    # ------------------------
-    def search(self, goal):
+    # スコア高い順にする
+    results = sorted(results, key=lambda x: x.get("score", 0), reverse=True)
 
-        results = []
-
-        for d in self.data:
-            if goal in d.get("goal", ""):
-                results.append(d)
-
-        return results[-5:]  # 最新5件
+    return results[:5]
