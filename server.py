@@ -1,17 +1,17 @@
 from fastapi import FastAPI
-from thinking_engine import ThinkingEngine
+from origin import BlackOrchestrator
 
 app = FastAPI()
 
-engine = ThinkingEngine()
+orchestrator = BlackOrchestrator()
 
 
 @app.get("/")
 def root():
-    return {"status": "BLACK ONLINE"}
+    return {"status": "BLACK DISTRIBUTED ONLINE"}
 
 
 @app.post("/think")
 def think(data: dict):
     goal = data.get("goal", "")
-    return engine.run(goal)
+    return orchestrator.execute(goal)
