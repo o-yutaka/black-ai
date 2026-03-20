@@ -3,30 +3,22 @@ from fastapi.responses import FileResponse
 import json
 import asyncio
 import random
+import os
+from openai import OpenAI
 
 app = FastAPI()
 
-# -------------------------
-# 覇権モード
-# -------------------------
-MODE = "aggressive"  # balanced / aggressive / defensive
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# -------------------------
-# Memory（学習）
-# -------------------------
+MODE = "aggressive"
+
 memory = []
 
-# -------------------------
-# UI
-# -------------------------
 @app.get("/")
 def root():
     return FileResponse("index.html")
 
 
-# -------------------------
-# 戦略生成（thinking）
-# -------------------------
 def generate_strategies(goal):
 
     base = [
@@ -38,44 +30,28 @@ def generate_strategies(goal):
         "disrupt"
     ]
 
-    strategies = []
-
-    for b in base:
-        strategies.append({
-            "type": b,
-            "weight": random.uniform(0.8, 1.3)
-        })
-
-    return strategies
+    return [
+        {"type": b, "weight": random.uniform(0.8, 1.3)}
+        for b in base
+    ]
 
 
-# -------------------------
-# シミュレーション
-# -------------------------
 def simulate(strategy):
 
-    success = random.uniform(1.0, 1.7) * strategy["weight"]
-    risk = random.uniform(0.2, 0.7)
-
     return {
-        "success": success,
-        "risk": risk
+        "success": random.uniform(1.0, 1.7) * strategy["weight"],
+        "risk": random.uniform(0.2, 0.7)
     }
 
 
-# -------------------------
-# 評価（Memory + モード）
-# -------------------------
 def evaluate(strategy, sim):
 
     score = sim["success"] - sim["risk"]
 
-    # Memory補正（学習）
     for m in memory:
         if m["strategy"] == strategy["type"]:
             score *= 1.1
 
-    # モード補正（人格）
     if MODE == "aggressive":
         score *= 1.2
     elif MODE == "defensive":
@@ -84,9 +60,21 @@ def evaluate(strategy, sim):
     return score
 
 
-# -------------------------
-# WebSocket（UI連携）
-# -------------------------
+def generate_answer(goal, winner):
+
+    try:
+        res = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a strategic AI. Answer clearly."},
+                {"role": "user", "content": f"Goal: {goal}\nBest strategy: {winner}\nExplain simply."}
+            ]
+        )
+        return res.choices[0].message.content
+    except:
+        return "error"
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
@@ -101,19 +89,15 @@ async def websocket_endpoint(ws: WebSocket):
 
         results = []
 
-        # thinking表示
         for s in strategies:
 
             sim = simulate(s)
             score = evaluate(s, sim)
 
-            result = {
+            results.append({
                 "strategy": s,
-                "simulation": sim,
                 "score": score
-            }
-
-            results.append(result)
+            })
 
             await ws.send_text(json.dumps({
                 "type": "thinking",
@@ -123,19 +107,16 @@ async def websocket_endpoint(ws: WebSocket):
                 }
             }))
 
-            await asyncio.sleep(0.3)
+            await asyncio.sleep(0.2)
 
-        # 勝者決定
         winner = sorted(results, key=lambda x: x["score"], reverse=True)[0]
 
-        # Memory保存
         memory.append({
             "goal": goal,
             "strategy": winner["strategy"]["type"],
             "score": winner["score"]
         })
 
-        # winner表示
         await ws.send_text(json.dumps({
             "type": "winner",
             "data": {
@@ -144,11 +125,15 @@ async def websocket_endpoint(ws: WebSocket):
             }
         }))
 
-        # evolution表示
-        await ws.send_text(json.dumps({
-            "type": "evolution",
-            "data": {
-                "memory_size": len(memory),
-                "mode": MODE
-            }
-        }))
+        answer = generate_answer(goal, winner["strategy"]["type"])
+
+        await ws.send_text(json.dumps({"type": "answer_start"}))
+
+        for c in answer:
+            await ws.send_text(json.dumps({
+                "type": "answer_stream",
+                "data": c
+            }))
+            await asyncio.sleep(0.01)
+
+        await ws.send_text(json.dumps({"type": "answer_end"}))
