@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>BLACK UI</title>
+</head>
+
+<body style="background:black;color:#0f0;font-family:monospace">
+
+<h2>BLACK OS</h2>
+
+<input id="goal" placeholder="goal"/>
+<button onclick="run()">RUN</button>
+
+<div id="log"></div>
+
+<script>
+let ws = new WebSocket("ws://localhost:8765");
+
+ws.onmessage = (msg) => {
+    let data = JSON.parse(msg.data);
+
+    let div = document.createElement("div");
+
+    if(data.type === "thinking"){
+        div.innerText = "thinking: " + data.data.strategy.type + " | " + data.data.score.toFixed(2);
+    }
+
+    if(data.type === "winner"){
+        div.innerText = "🔥 WINNER: " + data.data.strategy.type;
+        div.style.color = "yellow";
+    }
+
+    if(data.type === "evolution"){
+        div.innerText = "evolution: " + JSON.stringify(data.data);
+    }
+
+    document.getElementById("log").appendChild(div);
+};
+
+function run(){
+    let goal = document.getElementById("goal").value;
+    ws.send(JSON.stringify({goal}));
+}
+</script>
+
+</body>
+</html>
