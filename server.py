@@ -8,7 +8,10 @@ from openai import OpenAI
 
 app = FastAPI()
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# ★ APIキー（確実取得）
+API_KEY = os.environ.get("OPENAI_API_KEY")
+
+client = OpenAI(api_key=API_KEY)
 
 MODE = "aggressive"
 
@@ -62,17 +65,23 @@ def evaluate(strategy, sim):
 
 def generate_answer(goal, winner):
 
+    # ★ APIキー未設定時の安全処理
+    if not API_KEY:
+        return "API KEY NOT SET"
+
     try:
         res = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a strategic AI. Answer clearly."},
-                {"role": "user", "content": f"Goal: {goal}\nBest strategy: {winner}\nExplain simply."}
+                {"role": "system", "content": "Explain clearly and simply."},
+                {"role": "user", "content": f"Goal: {goal}\nBest strategy: {winner}\nExplain what to do."}
             ]
         )
+
         return res.choices[0].message.content
-    except:
-        return "error"
+
+    except Exception as e:
+        return "ERROR: " + str(e)
 
 
 @app.websocket("/ws")
@@ -125,6 +134,7 @@ async def websocket_endpoint(ws: WebSocket):
             }
         }))
 
+        # ★ GPT回答
         answer = generate_answer(goal, winner["strategy"]["type"])
 
         await ws.send_text(json.dumps({"type": "answer_start"}))
