@@ -5,49 +5,63 @@
 <title>BLACK UI</title>
 </head>
 
-<body style="background:black;color:#0f0;font-family:monospace">
+<body style="background:black;color:#0f0;font-family:monospace;text-align:center">
 
-<h2>BLACK OS</h2>
+<h1 style="color:#0f0;">BLACK OS</h1>
 
-<input id="goal" placeholder="goal"/>
-<button onclick="run()">RUN</button>
+<input id="goal" placeholder="Enter goal"
+style="padding:10px;background:#111;color:#0f0;border:1px solid #0f0;"/>
 
-<div id="log"></div>
+<button onclick="run()"
+style="padding:10px 20px;background:#0f0;color:black;border:none;margin-left:10px;">
+RUN
+</button>
+
+<div id="log" style="margin-top:30px;"></div>
 
 <script>
-let ws = new WebSocket("wss://black-ai-co4j.onrender.com/ws");
+let ws;
 
-ws.onmessage = (msg) => {
-    let data = JSON.parse(msg.data);
+function connect(){
+    ws = new WebSocket("wss://black-ai-co4j.onrender.com/ws");
 
-    let div = document.createElement("div");
+    ws.onmessage = (msg) => {
+        let data = JSON.parse(msg.data);
 
-    if(data.type === "thinking"){
-        div.innerText =
-            "thinking: " +
-            data.data.type +
-            " | " +
-            data.data.score.toFixed(2);
-    }
+        let div = document.createElement("div");
+        div.style.margin = "10px";
 
-    if(data.type === "winner"){
-        div.innerText =
-            "🔥 WINNER: " +
-            data.data.type +
-            " | SCORE: " +
-            data.data.score.toFixed(2);
-        div.style.color = "yellow";
-    }
+        if(data.type === "thinking"){
+            div.innerText = "⚡ " + data.data.type + " | " + data.data.score.toFixed(2);
+        }
 
-    if(data.type === "evolution"){
-        div.innerText = "evolution: " + JSON.stringify(data.data);
-    }
+        if(data.type === "winner"){
+            div.innerText = "🔥 WINNER: " + data.data.type;
+            div.style.color = "yellow";
+            div.style.fontSize = "20px";
+        }
 
-    document.getElementById("log").appendChild(div);
-};
+        if(data.type === "evolution"){
+            div.innerText = "🧬 evolved";
+            div.style.color = "#0ff";
+        }
+
+        document.getElementById("log").appendChild(div);
+    };
+
+    ws.onclose = () => setTimeout(connect, 1000);
+}
+
+connect();
 
 function run(){
     let goal = document.getElementById("goal").value;
+
+    if(ws.readyState !== 1){
+        alert("connecting...");
+        return;
+    }
+
     ws.send(JSON.stringify({goal}));
 }
 </script>
