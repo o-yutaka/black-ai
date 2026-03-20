@@ -1,34 +1,24 @@
-from decision_engine import DecisionEngine
-from memory_pool import MemoryPool
-from evolution_engine import EvolutionEngine
+def run(self, goal):
 
+    mem = self.memory.search(goal)
 
-class ThinkingEngine:
+    result = self.decision.decide(goal, mem)
 
-    def __init__(self):
-        self.decision = DecisionEngine()
-        self.memory = MemoryPool()
-        self.evolution = EvolutionEngine()
+    # ------------------------
+    # 勝者だけ保存
+    # ------------------------
+    winner = result["winner"]
 
-    def run(self, goal):
+    self.memory.store({
+        "goal": goal,
+        "strategy": winner["strategy"]["type"],
+        "score": winner["score"]
+    })
 
-        # Memory
-        mem = self.memory.search(goal)
+    evo = self.evolution.evolve(result["top"])
 
-        # 思考
-        result = self.decision.decide(goal, mem)
-
-        # 進化
-        evo = self.evolution.evolve(result["top"])
-
-        # 保存
-        self.memory.store({
-            "goal": goal,
-            "result": result
-        })
-
-        return {
-            "decision": result,
-            "evolution": evo,
-            "memory": mem
-        }
+    return {
+        "decision": result,
+        "evolution": evo,
+        "memory": mem
+    }
