@@ -9,6 +9,11 @@ app = FastAPI()
 def root():
     return {"status": "BLACK DISTRIBUTED ONLINE"}
 
+from fastapi.responses import FileResponse
+
+@app.get("/ui")
+def ui():
+    return FileResponse("index.html")
 
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
