@@ -1,0 +1,23 @@
+{
+  "min_segment_rows": 96,
+  "max_segment_rows": 512,
+  "max_switches": 8,
+  "boundary_quantile": 0.86,
+  "max_boundaries": 64,
+  "evidence_weight": 1.0,
+  "switch_penalty": 0.45,
+  "continuity_weight": 0.35,
+  "slope_jump_weight": 0.7,
+  "curvature_jump_weight": 0.3,
+  "confidence_margin": 0.35,
+  "blend_temperature": 0.3,
+  "max_secondary_weight": 0.45,
+  "prefix_min_points": 48,
+  "prefix_bias_ridge": 20.0,
+  "prefix_slope_ridge": 400.0,
+  "gr_weight": 1.0,
+  "pf_weight": 0.8,
+  "geometry_weight": 0.35,
+  "surface_weight": 0.25,
+  "roughness_weight": 0.2
+}
