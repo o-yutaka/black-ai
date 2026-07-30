@@ -1,5 +1,7 @@
 # ROGII Segment-Level Structured Candidate Selector
 
+Status: implemented on `main`; local regression tests `4 passed`; CLI smoke `PASS`.
+
 目的は、候補trajectoryを井戸全体で1本選ぶのではなく、**正しい候補を正しい区間で選択すること**です。
 
 ## 構造
