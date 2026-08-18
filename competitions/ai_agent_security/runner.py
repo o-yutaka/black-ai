@@ -40,7 +40,9 @@ def _run_arm(name: str, factory: Callable[[], list[Candidate]]) -> tuple[list[Ca
 
 
 def run_parallel(arms: dict[str, Callable[[], list[Candidate]]], workers: int | None = None) -> dict[str, Any]:
-    workers = workers or min(len(arms), os.cpu_count() or 1)
+    if not arms:
+        raise ValueError("at least one exploration arm is required")
+    workers = max(1, min(workers or len(arms), len(arms), os.cpu_count() or 1))
     all_candidates: list[Candidate] = []
     records: list[RunRecord] = []
 
@@ -51,7 +53,6 @@ def run_parallel(arms: dict[str, Callable[[], list[Candidate]]], workers: int | 
             all_candidates.extend(candidates)
             records.append(record)
 
-    # Evidence-first ranking: reproducibility, measured score, then diversity signature.
     all_candidates.sort(key=lambda c: (c.replay_ok, c.score, len(set(c.messages))), reverse=True)
     selected: list[Candidate] = []
     seen: set[tuple[str, ...]] = set()
@@ -72,7 +73,31 @@ def run_parallel(arms: dict[str, Callable[[], list[Candidate]]], workers: int | 
     }
 
 
+def run_smoke() -> dict[str, Any]:
+    """Deterministic orchestration smoke; does not contact external systems."""
+    def arm(name: str, offset: int) -> Callable[[], list[Candidate]]:
+        def make() -> list[Candidate]:
+            return [Candidate(name, [f"smoke:{offset + i}"], replay_ok=True, score=float(offset + i)) for i in range(4)]
+        return make
+
+    return run_parallel({"single_turn": arm("single_turn", 1), "multi_turn": arm("multi_turn", 10)}, workers=2)
+
+
 def save_result(result: dict[str, Any], path: str | Path) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--smoke", action="store_true")
+    parser.add_argument("--out", default="artifacts/ai_agent_security/smoke.json")
+    args = parser.parse_args()
+    if not args.smoke:
+        parser.error("use --smoke for the deterministic local runner check")
+    result = run_smoke()
+    save_result(result, args.out)
+    print(json.dumps({"selected_count": result["selected_count"], "records": result["records"]}, ensure_ascii=False))
