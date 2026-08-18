@@ -47,13 +47,22 @@ def run_parallel(arms: dict[str, Callable[[], list[Candidate]]], workers: int | 
     records: list[RunRecord] = []
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = [pool.submit(_run_arm, name, fn) for name, fn in arms.items()]
-        for future in concurrent.futures.as_completed(futures):
+        futures = [pool.submit(_run_arm, name, fn) for name, fn in sorted(arms.items())]
+        for future in futures:
             candidates, record = future.result()
             all_candidates.extend(candidates)
             records.append(record)
 
-    all_candidates.sort(key=lambda c: (c.replay_ok, c.score, len(set(c.messages))), reverse=True)
+    # Stable total ordering: parallel completion order must never affect selection.
+    all_candidates.sort(
+        key=lambda c: (
+            not c.replay_ok,
+            -c.score,
+            -len(set(c.messages)),
+            c.arm,
+            tuple(c.messages),
+        )
+    )
     selected: list[Candidate] = []
     seen: set[tuple[str, ...]] = set()
     for candidate in all_candidates:
@@ -66,7 +75,7 @@ def run_parallel(arms: dict[str, Callable[[], list[Candidate]]], workers: int | 
             break
 
     return {
-        "records": [asdict(r) for r in sorted(records, key=lambda r: r.best_score, reverse=True)],
+        "records": [asdict(r) for r in sorted(records, key=lambda r: (-r.best_score, r.arm))],
         "candidate_count": len(all_candidates),
         "selected_count": len(selected),
         "candidates": [asdict(c) for c in selected],
